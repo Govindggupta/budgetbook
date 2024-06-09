@@ -19,6 +19,8 @@ function ExpensesPage({ theme, toggleTheme }) {
         const savedExpenses = localStorage.getItem(`expenses-${monthYear}`);
         return savedExpenses ? JSON.parse(savedExpenses).reduce((sum, exp) => sum + parseFloat(exp.amount), 0) : 0;
     });
+    const [editIndex, setEditIndex] = useState(null); // Track the index of the expense being edited
+    const [sortMethod, setSortMethod] = useState('date'); // Default sorting method
 
     const handleDateChange = (event) => {
         setSelectedDate(event.target.value);
@@ -32,11 +34,38 @@ function ExpensesPage({ theme, toggleTheme }) {
     const handleAddExpense = () => {
         if (expense && amount && selectedDate) {
             const newExpense = { expense, amount: parseFloat(amount), date: selectedDate };
-            setExpenses((prevExpenses) => [...prevExpenses, newExpense]); // Add new expense to the list
+            if (editIndex !== null) {
+                // If editing, update the existing expense
+                const updatedExpenses = [...expenses];
+                updatedExpenses[editIndex] = newExpense;
+                setExpenses(updatedExpenses);
+                setEditIndex(null); // Clear the edit index
+            } else {
+                // If not editing, add new expense to the list
+                setExpenses((prevExpenses) => [...prevExpenses, newExpense]);
+            }
             setTotalAmount((prevTotal) => prevTotal + newExpense.amount); // Update total amount
             setExpense(''); // Clear the input field
             setAmount(''); // Clear the amount field
             setSelectedDate(''); // Clear the selected date
+        }
+    };
+
+    const handleEditExpense = (index) => {
+        if (editIndex !== null && editIndex !== index) {
+            alert('Please save your current edit before editing another expense.');
+            return;
+        }
+        const expenseToEdit = expenses[index];
+        setExpense(expenseToEdit.expense);
+        setAmount(expenseToEdit.amount);
+        setSelectedDate(expenseToEdit.date);
+        setEditIndex(index); // Set the index of the expense being edited
+    };
+
+    const confirmDeleteExpense = (index) => {
+        if (window.confirm('Are you sure you want to delete this expense?')) {
+            handleDeleteExpense(index);
         }
     };
 
@@ -46,19 +75,24 @@ function ExpensesPage({ theme, toggleTheme }) {
         setTotalAmount((prevTotal) => prevTotal - amountToDeduct); // Update total amount
     };
 
-    const handleEditExpense = (index) => {
-        const expenseToEdit = expenses[index];
-        setExpense(expenseToEdit.expense);
-        setAmount(expenseToEdit.amount);
-        setSelectedDate(expenseToEdit.date);
-        handleDeleteExpense(index);
+    // Function to format numbers according to the Indian numbering system
+    const formatNumberToIndianSystem = (num) => {
+        const [integerPart, decimalPart] = num.toString().split('.');
+        let lastThreeDigits = integerPart.slice(-3);
+        const otherDigits = integerPart.slice(0, -3);
+        const formattedNumber = otherDigits.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + (otherDigits ? ',' : '') + lastThreeDigits;
+        return decimalPart ? `${formattedNumber}.${decimalPart}` : formattedNumber;
     };
 
-    const confirmDeleteExpense = (index) => {
-        if (window.confirm('Are you sure you want to delete this expense?')) {
-            handleDeleteExpense(index);
+    // Sort expenses based on the selected method
+    const sortedExpenses = [...expenses].sort((a, b) => {
+        if (sortMethod === 'date') {
+            return new Date(a.date) - new Date(b.date);
+        } else if (sortMethod === 'amount') {
+            return a.amount - b.amount;
         }
-    };
+        return 0;
+    });
 
     return (
         <div className={theme} style={{ height: '100vh' }}> {/* Apply the current theme */}
@@ -115,26 +149,37 @@ function ExpensesPage({ theme, toggleTheme }) {
                         </div>
                     </div>
                     <div className="container mt-7">
+                        <div className="flex justify-center mb-4">
+                            <select
+                                className="text-black border-2 border-violet-500 rounded-md px-2 py-1"
+                                value={sortMethod}
+                                onChange={(e) => setSortMethod(e.target.value)}
+                            >
+                                <option value="date">Sort by Date</option>
+                                <option value="amount">Sort by Amount</option>
+                            </select>
+                        </div>
                         <ul className='list h-[48vh] lg:h-[52vh] lg:w-4/5 m-auto overflow-y-scroll'>
-                            {expenses.map((exp, index) => (
+                            {sortedExpenses.map((exp, index) => (
                                 <li className='h-fit border-2 rounded-md mb-1 border-violet-500 p-2 flex flex-col' key={index}>
                                     <span>
                                         <span className='text-white bg-violet-400 font-medium py-1 px-2 rounded-md text-lg'>{exp.date}</span>
                                         <span className='ml-2 text-lg font-medium'>{exp.expense}</span>
-                                        <span className='font-semibold text-lg ml-2 text-red-500'>₹{exp.amount}</span>
+                                        <span className='font-semibold text-lg ml-2 text-red-500'>₹{formatNumberToIndianSystem(exp.amount)}</span>
                                     </span>
                                     <div className="flex justify-start mt-2">
                                         <motion.button
-                                            className='mr-2 w-20 text-white bg-violet-500 rounded'
-                                            onClick={() => handleEditExpense(index)}
+                                            className='mr-2 w-20 text-white .bg-violet-500
+                                            bg-violet-500 rounded'
                                             whileTap={{ scale: 0.95 }} // Slightly reduce the button size when active
+                                            onClick={() => handleEditExpense(index)}
                                         >
                                             Edit
                                         </motion.button>
                                         <motion.button
                                             className='w-20 border-2 border-violet-500 rounded'
-                                            onClick={() => confirmDeleteExpense(index)}
                                             whileTap={{ scale: 0.95 }} // Slightly reduce the button size when active
+                                            onClick={() => confirmDeleteExpense(index)}
                                         >
                                             Delete
                                         </motion.button>
@@ -143,7 +188,7 @@ function ExpensesPage({ theme, toggleTheme }) {
                             ))}
                         </ul>
                         <div className="totalAmount p-2 mt-2 text-lg font-bold text-center">
-                            Your Monthly Expense: <span className='text-red-500'>₹{totalAmount.toFixed(2)}</span>
+                            Your Monthly Expense: <span className='text-red-500'>₹{formatNumberToIndianSystem(totalAmount.toFixed(2))}</span>
                         </div>
                     </div>
                 </div>
@@ -153,3 +198,4 @@ function ExpensesPage({ theme, toggleTheme }) {
 }
 
 export default ExpensesPage;
+
