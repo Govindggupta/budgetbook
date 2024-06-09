@@ -89,7 +89,7 @@ function ExpensesPage({ theme, toggleTheme }) {
         if (sortMethod === 'date') {
             return new Date(a.date) - new Date(b.date);
         } else if (sortMethod === 'amount') {
-            return a.amount - b.amount;
+            return b.amount - a.amount;
         }
         return 0;
     });
@@ -198,4 +198,3 @@ function ExpensesPage({ theme, toggleTheme }) {
 }
 
 export default ExpensesPage;
-
