@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import back from '../assets/back.svg';
 
 function ExpensesPage({ theme, toggleTheme }) {
@@ -53,6 +54,12 @@ function ExpensesPage({ theme, toggleTheme }) {
         handleDeleteExpense(index);
     };
 
+    const confirmDeleteExpense = (index) => {
+        if (window.confirm('Are you sure you want to delete this expense?')) {
+            handleDeleteExpense(index);
+        }
+    };
+
     return (
         <div className={theme} style={{ height: '100vh' }}> {/* Apply the current theme */}
             <nav className="bg-violet-500 flex w-screen justify-between px-7 h-16 items-center z-50">
@@ -98,7 +105,13 @@ function ExpensesPage({ theme, toggleTheme }) {
                                     </option>
                                 ))}
                             </select>
-                            <button className='w-36 border-[3px] border-violet-500 rounded-md font-medium text-lg lg:w-20' onClick={handleAddExpense}>Save</button>
+                            <motion.button
+                                className='w-36 border-[3px] border-violet-500 rounded-md font-medium text-lg lg:w-20'
+                                onClick={handleAddExpense}
+                                whileTap={{ scale: 0.95 }} // Slightly reduce the button size when active
+                            >
+                                Save
+                            </motion.button>
                         </div>
                     </div>
                     <div className="container mt-7">
@@ -111,8 +124,20 @@ function ExpensesPage({ theme, toggleTheme }) {
                                         <span className='font-semibold text-lg ml-2 text-red-500'>₹{exp.amount}</span>
                                     </span>
                                     <div className="flex justify-start mt-2">
-                                        <button className='mr-2 w-20 text-white bg-violet-500 rounded' onClick={() => handleEditExpense(index)}>Edit</button>
-                                        <button className='w-20 border-2 border-violet-500 rounded' onClick={() => handleDeleteExpense(index)}>Delete</button>
+                                        <motion.button
+                                            className='mr-2 w-20 text-white bg-violet-500 rounded'
+                                            onClick={() => handleEditExpense(index)}
+                                            whileTap={{ scale: 0.95 }} // Slightly reduce the button size when active
+                                        >
+                                            Edit
+                                        </motion.button>
+                                        <motion.button
+                                            className='w-20 border-2 border-violet-500 rounded'
+                                            onClick={() => confirmDeleteExpense(index)}
+                                            whileTap={{ scale: 0.95 }} // Slightly reduce the button size when active
+                                        >
+                                            Delete
+                                        </motion.button>
                                     </div>
                                 </li>
                             ))}
