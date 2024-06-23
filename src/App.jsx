@@ -2,33 +2,34 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import ExpensesPage from './components/ExpensesPage';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { setMonth, setYear, getYear, getMonth } from 'date-fns';
 
 function MainPage({ theme, toggleTheme }) {
-  const [inputColor, setInputColor] = useState('white'); // State to manage the input color
+  const [inputColor, setInputColor] = useState('black'); // State to manage the input color
   const [selectedMonths, setSelectedMonths] = useState(() => {
     // Load saved selected months from localStorage when the component is first rendered
     const savedMonths = localStorage.getItem('selectedMonths');
     return savedMonths ? JSON.parse(savedMonths) : [];
   });
   const [sectionHeight, setSectionHeight] = useState('0vh'); // State to manage the section height
+  const [selectedDate, setSelectedDate] = useState(null); // State to manage the selected date
 
   useEffect(() => {
     // Save selected months to localStorage whenever they change
     localStorage.setItem('selectedMonths', JSON.stringify(selectedMonths));
   }, [selectedMonths]);
 
-  const handleChange = (event) => {
-    const selectedMonthYear = event.target.value; // Get the selected month-year
-    if (selectedMonthYear) {
-      if (selectedMonths.includes(selectedMonthYear)) {
-        alert('This month-year is already selected!'); // Alert if the month-year is already selected
-      } else {
-        setInputColor('black'); // Change the input color
-        setSelectedMonths((prevSelectedMonths) => [...prevSelectedMonths, selectedMonthYear]); // Add the new month-year to the list
-      }
+  const handleDateChange = (date) => {
+    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    if (selectedMonths.includes(monthYear)) {
+      alert('This month-year is already selected!'); // Alert if the month-year is already selected
     } else {
-      setInputColor('white'); // Reset the input color if no month-year is selected
+      setInputColor('black'); // Change the input color
+      setSelectedMonths((prevSelectedMonths) => [...prevSelectedMonths, monthYear]); // Add the new month-year to the list
     }
+    setSelectedDate(date); // Set the selected date
   };
 
   const handleDelete = (monthYear) => {
@@ -42,7 +43,7 @@ function MainPage({ theme, toggleTheme }) {
   return (
     <main className={theme}> {/* Apply the current theme */}
       <nav className="theme-switcher bg-violet-500 flex w-screen justify-between px-7 h-16 items-center z-50">
-        <div className=' flex h-fit gap-5'>
+        <div className='flex h-fit gap-5'>
           <div className='w-10'><img src="/wallet.png" alt="logo" /></div>
           <h1 className='text-3xl hidden sm:block font-semibold'>BUDGETbook</h1>
         </div>
@@ -53,7 +54,7 @@ function MainPage({ theme, toggleTheme }) {
         </label>
       </nav>
       <motion.div
-        className="upperContent"
+        className="upperContent z-10"
         initial={{ opacity: 0, y: 0 }} // Initial animation state
         animate={{ opacity: 1, y: selectedMonths.length ? -200 : 0 }} // Animation state based on selected months
         transition={{ type: 'spring', stiffness: 50 }}
@@ -65,20 +66,27 @@ function MainPage({ theme, toggleTheme }) {
       >
         <h1 className='text-4xl mb-[3%] text-center'>Prepare Your <span className='font-bold text-violet-500'>BUDGETbook</span> </h1>
         <h1 className='text-center text-xl'>Pick Month-Year</h1>
-        <div className="container text-center">
-          <motion.input
-            className='border-2 border-black'
-            type="month"
-            id="month"
-            onChange={handleChange}
-            style={{ color: inputColor }} // Set the input color
-            animate={{ color: inputColor }}
-            transition={{ duration: 0.5 }}
+        <div className="container text-center " >
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            dateFormat="yyyy-MM"
+            showMonthYearPicker
+            className="custom-datepicker"
+            placeholderText="YYYY-MM"
+            customInput={
+              <motion.input
+                style={{ color: inputColor }}
+                animate={{ color: inputColor }}
+                transition={{ duration: 0.5 }}
+                className="border-2 border-black text-center w-44 h-8 " // Customize width and height
+              />
+            }
           />
         </div>
       </motion.div>
       {/* box of boxes */}
-      <section style={{ height: sectionHeight, position: 'absolute', bottom: 0, width: '100vw' }}>
+      <section style={{ height: sectionHeight, position: 'absolute', bottom: 0, width: '100vw', }}>
         <div className="boxes">
           {selectedMonths.map((monthYear, index) => (
             // boxes are here
