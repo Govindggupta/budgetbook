@@ -80,6 +80,7 @@ function MainPage({ theme, toggleTheme }) {
                 animate={{ color: inputColor }}
                 transition={{ duration: 0.5 }}
                 className="border-2 border-black text-center w-44 h-8 " // Customize width and height
+                readOnly // to ensure that it doesn't open keyboard on mobile 
               />
             }
           />
