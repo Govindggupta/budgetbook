@@ -75,13 +75,14 @@ function MainPage({ theme, toggleTheme }) {
             className="custom-datepicker"
             placeholderText="YYYY-MM"
             customInput={
-              <motion.input
+              <motion.div
                 style={{ color: inputColor }}
                 animate={{ color: inputColor }}
                 transition={{ duration: 0.5 }}
-                className="border-2 border-black text-center w-44 h-8 " // Customize width and height
-                readOnly // to ensure that it doesn't open keyboard on mobile 
-              />
+                className="border-2 border-black text-center w-44 h-8 flex items-center justify-center cursor-pointer"
+              >
+                {selectedDate ? selectedDate.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit' }) : 'YYYY-MM'}
+              </motion.div>
             }
           />
         </div>
